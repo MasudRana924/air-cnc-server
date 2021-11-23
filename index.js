@@ -19,12 +19,27 @@ async function run() {
         console.log('database connected')
          const database = client.db('hotelRes')
         const usersCollection = database.collection('users')
+        const applyCollection = database.collection('apply')
 
         // users section 
          app.post('/users', async (req, res) => {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
             res.json(result)
+        })
+        // apply section 
+        app.post('/postapply', async (req, res) => {
+            const apply = req.body;
+            const result = await applyCollection.insertOne(apply);
+            res.json(result)
+        })
+        app.get('/myapply', async (req, res) => {
+            const email = req.query.email
+            const query = { email: email }
+            const cursor = applyCollection.find(query)
+            const apply = await cursor.toArray()
+            res.send(apply)
+
         })
     }
 
