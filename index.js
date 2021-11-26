@@ -19,8 +19,18 @@ async function run() {
         console.log('database connected')
         const database = client.db('hotelRes')
         const usersCollection = database.collection('users')
+        const hotelsCollection = database.collection('hotels')
         const bookingsCollection = database.collection('bookings')
         const reviewsCollection = database.collection('reviews')
+
+        //     get data section
+        app.get('/hotels', async (req, res) => {
+            const cursor = hotelsCollection.find({})
+            const hotels = await cursor.toArray()
+            res.send(hotels)
+
+        })
+
         // users section 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -46,7 +56,7 @@ async function run() {
                     displayName: updatedUser.name,
                     phoneno: updatedUser.phone,
                     adddress: updatedUser.address,
-                    image:updatedUser.image
+                    image: updatedUser.image
                 }
             }
             const result = await usersCollection.updateOne(filter, updateDoc, true)
@@ -76,12 +86,27 @@ async function run() {
             res.json(result)
         })
 
-          //   reviews 
+        //   reviews 
         //    post api 
         app.post('/reviews', async (req, res) => {
-            const newReview = req.body
-            const result = await reviewsCollection.insertOne(newReview)
-            res.json(result)
+            const rating = req.body.rating;
+            const review = req.body.review;
+            const pic = req.files.image;
+            const picData = pic.data;
+            const encodedPic = picData.toString('base64');
+            const imageBuffer = Buffer.from(encodedPic, 'base64');
+            const setreviews = {
+                review,
+                rating,
+                image: imageBuffer
+            }
+            const result = await reviewsCollection.insertOne(setreviews);
+            res.json(result);
+        })
+        app.get('/getreviews', async (req, res) => {
+            const cursor = reviewsCollection.find({})
+            const reviews = await cursor.toArray()
+            res.send(reviews)
         })
     }
     finally {
