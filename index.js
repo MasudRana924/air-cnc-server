@@ -1,5 +1,6 @@
 const express = require('express')
 const { MongoClient } = require('mongodb');
+const fileUpload = require('express-fileupload');
 const ObjectId = require('mongodb').ObjectId
 const cors = require('cors');
 require('dotenv').config()
@@ -8,6 +9,7 @@ const port = process.env.PORT || 5000
 // middleware 
 app.use(cors())
 app.use(express.json())
+app.use(fileUpload());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hrpwo.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -54,20 +56,27 @@ async function run() {
         })
         app.put('/updateuser', async (req, res) => {
             const email = req.query.email
-            const updatedUser = req.body
             const filter = { email: email };
             const option = { upsert: true }
+            const name = req.body.name;
+            const phone = req.body.phone;
+            const address = req.body.address;
+            const pic = req.files.image;
+            const picData = pic.data;
+            const encodedPic = picData.toString('base64');
+            const imageBuffer = Buffer.from(encodedPic, 'base64');
+           
             const updateDoc = {
                 $set: {
-                    displayName: updatedUser.name,
-                    phoneno: updatedUser.phone,
-                    adddress: updatedUser.address,
-                    image: updatedUser.image
+                    displayName:name,
+                    phoneno: phone,
+                    adddress:address,
+                    image:imageBuffer
                 }
             }
             const result = await usersCollection.updateOne(filter, updateDoc, true)
             res.json(result)
-
+            console.log(result)
 
         })
 
